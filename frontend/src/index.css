@@ -1,0 +1,144 @@
+/* 🌱 Estilo general para EcoTracker */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f3f6f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* Contenedor principal */
+
+.App {
+    max-width: 700px;
+    margin: 40px auto;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+
+/* Título principal */
+
+h1 {
+    text-align: center;
+    color: #2e7d32;
+    margin-bottom: 25px;
+}
+
+
+/* Subtítulo */
+
+h2 {
+    color: #388e3c;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #c8e6c9;
+    padding-bottom: 5px;
+}
+
+
+/* Formulario */
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #bdbdbd;
+    outline: none;
+    transition: border 0.3s ease;
+}
+
+input:focus {
+    border: 1px solid #66bb6a;
+}
+
+
+/* Botones generales */
+
+button {
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    font-size: 14px;
+}
+
+
+/* Lista de usuarios */
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    background-color: #f1f8e9;
+    border: 1px solid #c5e1a5;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* 🔹 centra verticalmente el contenido */
+    gap: 10px;
+}
+
+
+/* Contenedor de info */
+
+.user-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Contenedor de botones */
+
+.user-actions {
+    display: flex;
+    gap: 8px;
+}
+
+
+/* Estilo de texto */
+
+li strong {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+
+/* Botón editar */
+
+.user-actions button:first-child {
+    background-color: #81c784;
+}
+
+.user-actions button:first-child:hover {
+    background-color: #66bb6a;
+}
+
+
+/* Botón eliminar */
+
+.user-actions button:last-child {
+    background-color: #e57373;
+}
+
+.user-actions button:last-child:hover {
+    background-color: #ef5350;
+}
