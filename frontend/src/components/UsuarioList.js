@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 
-// 🔹 Función para calcular nivel según puntuación
 const calcularNivel = (puntuacion) => {
   if (puntuacion >= 100) return "Experto 🌿";
   if (puntuacion >= 50) return "Intermedio 🌱";
@@ -11,7 +10,6 @@ const calcularNivel = (puntuacion) => {
 const UsuarioList = ({ usuarios, setUsuarios, seleccionarUsuario }) => {
   const [pagina, setPagina] = useState(1);
   const usuariosPorPagina = 3;
-
   const totalPaginas = Math.ceil(usuarios.length / usuariosPorPagina);
   const indexUltimoUsuario = pagina * usuariosPorPagina;
   const indexPrimerUsuario = indexUltimoUsuario - usuariosPorPagina;
@@ -20,7 +18,6 @@ const UsuarioList = ({ usuarios, setUsuarios, seleccionarUsuario }) => {
     indexUltimoUsuario
   );
 
-  // 🔹 Eliminar usuario
   const deleteUsuario = async (id) => {
     try {
       await fetch(`http://localhost:5000/api/usuarios/${id}`, {
@@ -50,9 +47,10 @@ const UsuarioList = ({ usuarios, setUsuarios, seleccionarUsuario }) => {
             }}
           >
             <div style={{ flex: 1 }}>
-              <strong> {usuario.nombre} </strong> - {usuario.email} <br />
-              Puntuación: {usuario.puntuacion || 0} | Nivel:{" "}
-              {calcularNivel(usuario.puntuacion || 0)}{" "}
+              <strong> {String(usuario.nombre)} </strong> -{" "}
+              {String(usuario.email)} <br />
+              Puntuación: {Number(usuario.puntuacion) || 0} | Nivel:{" "}
+              {calcularNivel(Number(usuario.puntuacion) || 0)}{" "}
             </div>{" "}
             <div style={{ display: "flex", gap: "6px" }}>
               <button
@@ -70,7 +68,7 @@ const UsuarioList = ({ usuarios, setUsuarios, seleccionarUsuario }) => {
             </div>{" "}
           </li>
         ))}{" "}
-      </ul>{" "}
+      </ul>
       {totalPaginas > 1 && (
         <div
           style={{

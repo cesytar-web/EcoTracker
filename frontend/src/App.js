@@ -6,7 +6,6 @@ import HistoricoUsuarios from "./components/HistoricoUsuarios";
 import ErrorBoundary from "./components/ErrorBoundary";
 import "./App.css";
 
-// 🔹 Función para calcular nivel según puntuación
 const calcularNivel = (puntuacion) => {
   if (puntuacion >= 100) return "Experto 🌿";
   if (puntuacion >= 50) return "Intermedio 🌱";
@@ -14,7 +13,6 @@ const calcularNivel = (puntuacion) => {
   return "Novato 🐛";
 };
 
-// 🔹 Notificaciones
 const notificar = (titulo, mensaje) => {
   if (!("Notification" in window)) return;
   if (Notification.permission === "granted") {
@@ -31,14 +29,20 @@ const App = () => {
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
   const [vista, setVista] = useState("lista");
   const [accionesDelUsuario, setAccionesDelUsuario] = useState([]);
-  const [nuevoUsuario, setNuevoUsuario] = useState({ nombre: "", email: "" });
 
-  // 🔹 Cargar usuarios
+  const [nuevoUsuario, setNuevoUsuario] = useState({
+    nombre: "",
+    email: "",
+    password: "",
+  });
+
+  // Cargar usuarios
   const fetchUsuarios = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/usuarios");
       const data = await res.json();
       setUsuarios(data || []);
+      console.log("Usuarios cargados:", data);
     } catch (err) {
       console.error("Error al cargar usuarios:", err);
       setUsuarios([]);
@@ -49,38 +53,40 @@ const App = () => {
     fetchUsuarios();
   }, []);
 
-  // 🔹 Agregar usuario
-  const agregarUsuario = async () => {
-    if (!nuevoUsuario.nombre || !nuevoUsuario.email) {
-      return alert("Completa todos los campos");
+  // Registrar usuario con contraseña
+  const registrarUsuario = async () => {
+    if (!nuevoUsuario.nombre || !nuevoUsuario.email || !nuevoUsuario.password) {
+      return alert("Completa todos los campos (nombre, email y contraseña)");
     }
+
     try {
-      const res = await fetch("http://localhost:5000/api/usuarios", {
+      const res = await fetch("http://localhost:5000/api/auth/registro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nuevoUsuario),
       });
+
       const data = await res.json();
+
       if (res.ok) {
-        setUsuarios([...usuarios, data]);
-        setNuevoUsuario({ nombre: "", email: "" });
-        notificar("EcoTracker", `Usuario ${data.nombre} agregado con éxito 🌱`);
+        setUsuarios([...usuarios, data.usuario]);
+        setNuevoUsuario({ nombre: "", email: "", password: "" });
+        notificar("EcoTracker", `Usuario ${data.usuario.nombre} registrado 🌱`);
       } else {
-        alert(data.message || "Error al agregar usuario");
+        alert(data.message || "Error al registrar usuario");
       }
     } catch (err) {
-      console.error("Error al agregar usuario:", err);
+      console.error("Error al registrar usuario:", err);
+      alert("Error al registrar usuario");
     }
   };
 
-  // 🔹 Seleccionar usuario
   const seleccionarUsuario = async (usuario) => {
     setUsuarioSeleccionado(usuario);
     setVista("acciones");
     await cargarAcciones(usuario._id);
   };
 
-  // 🔹 Cargar acciones
   const cargarAcciones = async (usuarioId) => {
     try {
       const res = await fetch(
@@ -94,14 +100,12 @@ const App = () => {
     }
   };
 
-  // 🔹 Volver a lista
   const volver = () => {
     setUsuarioSeleccionado(null);
     setVista("lista");
     setAccionesDelUsuario([]);
   };
 
-  // 🔹 Compartir logros
   const compartirLogros = () => {
     if (!usuarioSeleccionado) return;
     const mensaje = `¡Mi puntuación en EcoTracker es ${
@@ -116,7 +120,6 @@ const App = () => {
     }
   };
 
-  // 🔹 Manejar nueva acción agregada
   const manejarNuevaAccion = async () => {
     if (!usuarioSeleccionado) return;
     await cargarAcciones(usuarioSeleccionado._id);
@@ -128,89 +131,93 @@ const App = () => {
   };
 
   return (
-    <div
-      style={{ maxWidth: "700px", margin: "40px auto", fontFamily: "Arial" }}
-    >
-      <h1> EcoTracker </h1>
-      {/* ===== LISTA DE USUARIOS ===== */}{" "}
-      {vista === "lista" && (
-        <>
-          <div style={{ marginBottom: 20 }}>
-            <h2> Agregar Usuario </h2>{" "}
-            <input
-              type="text"
-              placeholder="Nombre"
-              value={nuevoUsuario.nombre}
-              onChange={(e) =>
-                setNuevoUsuario({ ...nuevoUsuario, nombre: e.target.value })
-              }
+    <ErrorBoundary>
+      <div
+        style={{ maxWidth: "700px", margin: "40px auto", fontFamily: "Arial" }}
+      >
+        <h1> EcoTracker </h1>
+        {vista === "lista" && (
+          <>
+            <div style={{ marginBottom: 20 }}>
+              <h2> Registrar Usuario </h2>{" "}
+              <input
+                type="text"
+                placeholder="Nombre"
+                value={nuevoUsuario.nombre}
+                onChange={(e) =>
+                  setNuevoUsuario({ ...nuevoUsuario, nombre: e.target.value })
+                }
+              />{" "}
+              <input
+                type="email"
+                placeholder="Email"
+                value={nuevoUsuario.email}
+                onChange={(e) =>
+                  setNuevoUsuario({ ...nuevoUsuario, email: e.target.value })
+                }
+              />{" "}
+              <input
+                type="password"
+                placeholder="Contraseña"
+                value={nuevoUsuario.password}
+                onChange={(e) =>
+                  setNuevoUsuario({ ...nuevoUsuario, password: e.target.value })
+                }
+              />{" "}
+              <button className="registrarse" onClick={registrarUsuario}>
+                Registrar{" "}
+              </button>{" "}
+            </div>
+            <button
+              className="agregar"
+              onClick={() => setVista("estadisticas")}
+            >
+              Ver estadísticas{" "}
+            </button>
+            <h2> Lista de Usuarios </h2>{" "}
+            <UsuarioList
+              usuarios={usuarios}
+              setUsuarios={setUsuarios}
+              seleccionarUsuario={seleccionarUsuario}
             />{" "}
-            <input
-              type="email"
-              placeholder="Email"
-              value={nuevoUsuario.email}
-              onChange={(e) =>
-                setNuevoUsuario({ ...nuevoUsuario, email: e.target.value })
-              }
-            />{" "}
-            <button className="registrarse" onClick={agregarUsuario}>
-              Registrar{" "}
+          </>
+        )}
+        {vista === "estadisticas" && (
+          <div style={{ width: "100%", height: 450 }}>
+            <EstadisticasUsuarios usuarios={usuarios} />{" "}
+            <button className="volver" onClick={volver}>
+              Volver a la lista de usuarios{" "}
             </button>{" "}
-          </div>{" "}
-          <button className="agregar" onClick={() => setVista("estadisticas")}>
-            Ver estadísticas{" "}
-          </button>{" "}
-          <h2> Lista de Usuarios </h2>{" "}
-          <UsuarioList
-            usuarios={usuarios}
-            setUsuarios={setUsuarios}
-            seleccionarUsuario={seleccionarUsuario}
-          />{" "}
-        </>
-      )}
-      {/* ===== ESTADÍSTICAS ===== */}{" "}
-      {vista === "estadisticas" && (
-        <div style={{ width: "100%", height: 450 }}>
-          <ErrorBoundary>
-            {" "}
-            {usuarios && usuarios.length > 0 ? (
-              <EstadisticasUsuarios usuarios={usuarios} />
-            ) : (
-              <p> No hay usuarios disponibles para mostrar estadísticas. </p>
-            )}{" "}
-          </ErrorBoundary>{" "}
-          <button className="volver" onClick={volver}>
-            Volver a la lista de usuarios{" "}
-          </button>{" "}
-        </div>
-      )}
-      {/* ===== ACCIONES ===== */}{" "}
-      {vista === "acciones" && usuarioSeleccionado && (
-        <>
-          <h2> Acciones de {usuarioSeleccionado.nombre} </h2>{" "}
-          <p>
-            <strong> Puntuación: {usuarioSeleccionado.puntuacion || 0} </strong>{" "}
-          </p>{" "}
-          <p>
-            <strong>
-              {" "}
-              Nivel: {calcularNivel(usuarioSeleccionado.puntuacion || 0)}{" "}
-            </strong>{" "}
-          </p>{" "}
-          <button onClick={compartirLogros}> 📤Compartir mis logros </button>{" "}
-          <AccionList
-            usuarioId={usuarioSeleccionado._id}
-            onNuevaAccion={manejarNuevaAccion}
-          />{" "}
-          <ErrorBoundary>
+          </div>
+        )}
+        {vista === "acciones" && usuarioSeleccionado && (
+          <>
+            <h2> Acciones de {usuarioSeleccionado.nombre} </h2>{" "}
+            <p>
+              <strong>
+                {" "}
+                Puntuación: {Number(usuarioSeleccionado.puntuacion) || 0}{" "}
+              </strong>{" "}
+            </p>{" "}
+            <p>
+              <strong>
+                Nivel:{" "}
+                {calcularNivel(Number(usuarioSeleccionado.puntuacion) || 0)}{" "}
+              </strong>{" "}
+            </p>{" "}
+            <button onClick={compartirLogros}> 📤Compartir mis logros </button>{" "}
+            <AccionList
+              usuarioId={usuarioSeleccionado._id}
+              onNuevaAccion={manejarNuevaAccion}
+            />{" "}
             <HistoricoUsuarios acciones={accionesDelUsuario} />{" "}
-          </ErrorBoundary>{" "}
-          <button className="volver" onClick={volver}>
-            Volver a la lista de usuarios{" "}
-          </button>{" "}
-        </>
-      )}{" "}
-    </div>
+            <button className="volver" onClick={volver}>
+              Volver a la lista de usuarios{" "}
+            </button>{" "}
+          </>
+        )}{" "}
+      </div>{" "}
+    </ErrorBoundary>
   );
 };
 
