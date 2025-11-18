@@ -68,7 +68,7 @@ const UsuarioList = ({ usuarios, setUsuarios, seleccionarUsuario }) => {
             </div>{" "}
           </li>
         ))}{" "}
-      </ul>
+      </ul>{" "}
       {totalPaginas > 1 && (
         <div
           style={{
@@ -79,22 +79,24 @@ const UsuarioList = ({ usuarios, setUsuarios, seleccionarUsuario }) => {
             alignItems: "center",
           }}
         >
-          <button
-            onClick={() => setPagina((p) => Math.max(p - 1, 1))}
-            disabled={pagina === 1}
-          >
-            Anterior{" "}
-          </button>{" "}
+            <button
+              className="btn-prev"
+              onClick={() => setPagina((p) => Math.max(p - 1, 1))}
+              disabled={pagina === 1}
+            >
+              Anterior
+            </button>
           <span>
             Página {pagina}
             de {totalPaginas}{" "}
           </span>{" "}
-          <button
-            onClick={() => setPagina((p) => Math.min(p + 1, totalPaginas))}
-            disabled={pagina === totalPaginas}
-          >
-            Siguiente{" "}
-          </button>{" "}
+            <button
+              className="btn-next"
+              onClick={() => setPagina((p) => Math.min(p + 1, totalPaginas))}
+              disabled={pagina === totalPaginas}
+            >
+              Siguiente
+            </button>
         </div>
       )}{" "}
     </div>

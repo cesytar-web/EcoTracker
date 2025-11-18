@@ -29,6 +29,19 @@ h1 {
     margin-bottom: 25px;
 }
 
+/* App title with icon */
+.app-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 28px;
+    color: #2e7d32;
+}
+.app-icon svg {
+    display: block;
+}
+
 
 /* Subtítulo */
 
@@ -141,4 +154,126 @@ li strong {
 
 .user-actions button:last-child:hover {
     background-color: #ef5350;
+}
+
+/* Botones específicos de la UI */
+.agregar {
+    background-color: #2e7d32;
+}
+.agregar:hover {
+    background-color: #256c28;
+}
+.eliminar {
+    background-color: #e57373;
+}
+.eliminar:hover {
+    background-color: #ef5350;
+}
+.ver-acciones {
+    background-color: #81c784;
+}
+.ver-acciones:hover {
+    background-color: #66bb6a;
+}
+
+/* Botones de paginación: anterior / siguiente (tema verde con acceso claro) */
+.btn-prev,
+.btn-next {
+    background: linear-gradient(180deg, #66bb6a 0%, #2e7d32 100%);
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(46,125,50,0.2);
+}
+.btn-prev[disabled], .btn-next[disabled] {
+    opacity: 0.45;
+    cursor: default;
+    box-shadow: none;
+}
+.btn-prev:hover:not([disabled]), .btn-next:hover:not([disabled]) {
+    transform: translateY(-1px);
+}
+
+/* Small responsive tweak */
+@media (max-width: 480px) {
+    .btn-prev, .btn-next {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+}
+
+/* Responsive: tablet and mobile adjustments */
+@media (max-width: 768px) {
+    .App {
+        margin: 20px;
+        padding: 20px;
+        max-width: 640px;
+    }
+
+    /* Lista de usuarios: pasar a columna para pantallas más pequeñas */
+    li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .user-actions {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .user-actions button {
+        flex: 0 0 auto;
+    }
+
+    /* Tablas responsivas: permitir scroll horizontal */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .App {
+        margin: 10px;
+        padding: 16px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    button {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+
+    input {
+        padding: 8px 10px;
+    }
+
+    /* Botones en lista: ocupan todo el ancho para facilitar click en móvil */
+    .user-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .user-actions button {
+        width: 100%;
+    }
 }
