@@ -127,4 +127,136 @@ router.delete("/:id", async(req, res) => {
     }
 });
 
+// POST: Añadir un logro manualmente (útil para pruebas)
+router.post("/:id/logros", async (req, res) => {
+    try {
+        const { titulo, descripcion, fecha } = req.body;
+        if (!titulo) return res.status(400).json({ message: "El campo 'titulo' es requerido" });
+
+        const usuario = await Usuario.findById(req.params.id);
+        if (!usuario) return res.status(404).json({ message: "Usuario no encontrado" });
+
+        // Evitar duplicados por título
+        if (usuario.logros && usuario.logros.some(l => l.titulo === titulo)) {
+            return res.status(400).json({ message: "El logro ya existe para este usuario" });
+        }
+
+        const logro = { titulo, descripcion: descripcion || "", fecha: fecha ? new Date(fecha) : undefined };
+        usuario.logros.push(logro);
+        await usuario.save();
+
+        const resp = await Usuario.findById(usuario._id).select("-password").lean();
+        res.status(201).json(resp);
+    } catch (err) {
+        console.error("Error al añadir logro manual:", err);
+        res.status(500).json({ message: "Error al añadir logro" });
+    }
+});
+
+// POST: Recalcular logros de un usuario a partir de sus acciones
+router.post("/:id/recalcular-logros", async (req, res) => {
+    try {
+        const usuario = await Usuario.findById(req.params.id);
+        if (!usuario) return res.status(404).json({ message: "Usuario no encontrado" });
+
+        // Obtener todas las acciones del usuario
+        const accionesUsuario = await Accion.find({ usuario: usuario._id }).select('fecha tipo puntos').lean();
+
+        const totalAcciones = accionesUsuario.length;
+
+        // Contar por tipo
+        const countsByType = accionesUsuario.reduce((acc, a) => {
+            acc[a.tipo] = (acc[a.tipo] || 0) + 1;
+            return acc;
+        }, {});
+
+        const tipoReciclajeCount = countsByType['Reciclaje'] || 0;
+        const tipoBiciCount = countsByType['Uso de Bicicleta'] || 0;
+
+        // Días únicos con acciones
+        const daySet = new Set();
+        accionesUsuario.forEach(a => {
+            if (a.fecha) {
+                const d = new Date(a.fecha).toISOString().slice(0,10);
+                daySet.add(d);
+            }
+        });
+        const diasUnicos = Array.from(daySet).sort().reverse();
+        const diasUnicosCount = diasUnicos.length;
+
+        // Calcular racha consecutiva que termina en la fecha más reciente
+        let racha = 0;
+        if (diasUnicosCount > 0) {
+            const diaMasReciente = new Date(diasUnicos[0]);
+            let current = new Date(diaMasReciente);
+            const daySetLookup = new Set(diasUnicos);
+            while (true) {
+                const key = current.toISOString().slice(0,10);
+                if (daySetLookup.has(key)) {
+                    racha++;
+                    current.setUTCDate(current.getUTCDate() - 1);
+                } else break;
+            }
+        }
+
+        // Reconstruir logros desde cero
+        const nuevosLogros = [];
+
+        const pushLogro = (titulo, descripcion, fecha) => {
+            nuevosLogros.push({ titulo, descripcion, fecha: fecha ? new Date(fecha) : new Date() });
+        };
+
+        if (totalAcciones >= 1) {
+            // Fecha de la primera acción (si existe)
+            let fechaPrimera = null;
+            if (accionesUsuario.length > 0) {
+                fechaPrimera = accionesUsuario.reduce((min, a) => {
+                    const d = new Date(a.fecha);
+                    return (!min || d < min) ? d : min;
+                }, null);
+            }
+            pushLogro("Primera Acción", "Has registrado tu primera acción ecológica. ¡Bienvenido al cambio!", fechaPrimera || undefined);
+        }
+
+        if (tipoReciclajeCount >= 5) {
+            pushLogro("Reciclaste 5 veces", "Has realizado 5 acciones de reciclaje. ¡Excelente hábito!", undefined);
+        }
+
+        if (totalAcciones >= 10) {
+            pushLogro("10 Acciones", "Has registrado 10 acciones. Sigues avanzando hacia un mundo más sostenible.", undefined);
+        }
+
+        if (diasUnicosCount >= 5) {
+            pushLogro("5 Días Activo", "Has realizado acciones en 5 días distintos. ¡Constancia!", undefined);
+        }
+
+        if (racha >= 3) {
+            pushLogro("Racha 3 Días", "Has registrado acciones en 3 días consecutivos. ¡Mantén el impulso!", undefined);
+        }
+
+        if (racha >= 7) {
+            pushLogro("Semana Activa", "Has mantenido acciones durante 7 días seguidos. ¡Eres imparable!", undefined);
+        }
+
+        if (tipoBiciCount >= 5) {
+            pushLogro("Uso de Bicicleta 5 veces", "Has usado la bicicleta 5 veces. ¡Excelente para el planeta y tu salud!", undefined);
+        }
+
+        // Logro por puntuación (se conserva la puntuación actual)
+        if (usuario.puntuacion >= 500) {
+            pushLogro("Nivel Oro", "Has alcanzado el nivel Oro 🌟 gracias a tus acciones ecológicas.", undefined);
+        }
+
+        // Reemplazar logros y guardar
+        usuario.logros = nuevosLogros;
+        await usuario.save();
+
+        const resp = await Usuario.findById(usuario._id).select("-password").lean();
+        res.json({ message: "Logros recalculados", usuario: resp });
+    } catch (err) {
+        console.error("Error al recalcular logros:", err);
+        res.status(500).json({ message: "Error al recalcular logros" });
+    }
+});
+
 module.exports = router;
